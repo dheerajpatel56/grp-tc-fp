@@ -9,22 +9,34 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// API Routes
+// 1. Health Check Endpoint (Must be first to avoid static match)
+app.get('/api/health', async (req, res) => {
+    console.log('Health check requested');
+    try {
+        const db = require('./config/db');
+        const [result] = await db.query('SELECT 1 as connected');
+        console.log('Health check DB success:', result);
+        res.json({
+            status: 'OK',
+            database: 'Connected',
+            time: new Date().toISOString()
+        });
+    } catch (err) {
+        console.error('Health check DB error:', err);
+        res.status(500).json({
+            status: 'Error',
+            message: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
+    }
+});
+
+// 2. API Routes
 const authRoutes = require('./routes/authRoutes');
 const groupRoutes = require('./routes/groupRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-
-app.get('/api/health', async (req, res) => {
-    try {
-        const db = require('./config/db');
-        await db.query('SELECT 1');
-        res.json({ status: 'OK', database: 'Connected' });
-    } catch (err) {
-        res.status(500).json({ status: 'Error', message: err.message });
-    }
-});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
@@ -32,11 +44,12 @@ app.use('/api/locations', locationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Serve static files from 'client'
+// 3. Static Files
 app.use(express.static(path.join(__dirname, '../client')));
 
-// Catch-all to serve the frontend for any non-API routes (fallback)
+// 4. Catch-all Fallback (Serve login page for any other route)
 app.use((req, res) => {
+    console.log(`Fallback hit for: ${req.method} ${req.path}`);
     res.sendFile(path.join(__dirname, '../client/login.html'));
 });
 
