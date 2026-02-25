@@ -9,9 +9,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from 'client'
-app.use(express.static(path.join(__dirname, '../client')));
-
 // API Routes
 const authRoutes = require('./routes/authRoutes');
 const groupRoutes = require('./routes/groupRoutes');
@@ -25,11 +22,12 @@ app.use('/api/locations', locationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Catch-all to serve the frontend for any other routes
+// Serve static files from 'client'
+app.use(express.static(path.join(__dirname, '../client')));
+
+// Catch-all to serve the frontend for any non-API routes
 app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(__dirname, '../client/login.html'));
-    }
+    res.sendFile(path.join(__dirname, '../client/login.html'));
 });
 
 const PORT = process.env.PORT || 5000;
