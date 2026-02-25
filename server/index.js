@@ -1,4 +1,13 @@
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
 const path = require('path');
+
+dotenv.config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
 
 // Serve static files from 'client'
 app.use(express.static(path.join(__dirname, '../client')));
@@ -16,7 +25,7 @@ app.use('/api/locations', locationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Serve frontend for any non-API routes
+// Catch-all to serve the frontend for any other routes
 app.get('*', (req, res) => {
     if (!req.path.startsWith('/api')) {
         res.sendFile(path.join(__dirname, '../client/login.html'));
