@@ -25,8 +25,8 @@ app.use('/api/admin', adminRoutes);
 // Serve static files from 'client'
 app.use(express.static(path.join(__dirname, '../client')));
 
-// Catch-all to serve the frontend for any non-API routes
-app.get('(.*)', (req, res) => {
+// Catch-all to serve the frontend for any non-API routes (fallback)
+app.use((req, res) => {
     res.sendFile(path.join(__dirname, '../client/login.html'));
 });
 
