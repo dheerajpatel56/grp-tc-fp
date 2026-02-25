@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Group Tracker</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body style="display: block; padding-top: 80px;">
+    <nav>
+        <div class="brand">LOCATOR</div>
+        <div id="userInfo" style="display: flex; align-items: center; gap: 1rem;">
+            <span id="usernameDisplay"></span>
+            <button id="logoutBtn"
+                style="margin-top: 0; padding: 0.5rem 1rem; width: auto; background: rgba(255,255,255,0.1);">Logout</button>
+        </div>
+    </nav>
+
+    <main style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+        <h1 style="margin-bottom: 2rem;">Dashboard</h1>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+            <!-- Left Panel -->
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <!-- Group Management -->
+                <div class="card" style="padding: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">Groups</h3>
+                    <input type="text" id="groupName" placeholder="New Group Name" style="margin-bottom: 0.5rem;">
+                    <button id="createGroupBtn" style="margin-top: 0; margin-bottom: 1rem;">Create</button>
+
+                    <input type="text" id="groupCode" placeholder="Enter Join Code">
+                    <button id="joinGroupBtn" style="margin-top: 0.5rem;">Join Group</button>
+                </div>
+
+                <!-- Notifications -->
+                <div class="card" style="padding: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">Notifications</h3>
+                    <div id="notificationList" style="max-height: 300px; overflow-y: auto; font-size: 0.875rem;">
+                        <!-- Notifications here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <div class="card" style="padding: 1.5rem; max-width: none;">
+                    <h3 style="margin-bottom: 1rem;">My Groups</h3>
+                    <div id="groupsList"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                        <!-- Groups here -->
+                    </div>
+                </div>
+
+                <!-- Admin Section (Only visible to admin) -->
+                <div id="adminPanel" class="card" style="padding: 1.5rem; display: none;">
+                    <h3 style="margin-bottom: 1rem; color: #fb7185;">Admin Panel</h3>
+                    <div style="display: flex; gap: 1rem;">
+                        <button onclick="fetchAdminUsers()" style="background: #334155; width: auto;">Manage
+                            Users</button>
+                        <button onclick="fetchAdminGroups()" style="background: #334155; width: auto;">Manage
+                            Groups</button>
+                    </div>
+                    <div id="adminData" style="margin-top: 1.5rem; overflow-x: auto;"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user'));
+
+        if (!token) {
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('usernameDisplay').innerText = `Hi, ${user.username}`;
+            if (user.role === 'admin') document.getElementById('adminPanel').style.display = 'block';
+            fetchGroups();
+            fetchNotifications();
+            setInterval(fetchNotifications, 10000);
+        }
+
+        async function fetchGroups() {
+            const res = await fetch('/api/groups/my-groups', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const groups = await res.json();
+            const list = document.getElementById('groupsList');
+            list.innerHTML = '';
+            groups.forEach(group => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.style.padding = '1rem';
+                div.style.background = 'rgba(255,255,255,0.05)';
+                div.innerHTML = `
+                    <h4 style="margin-bottom: 0.5rem;">${group.name}</h4>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">CODE: ${group.group_code}</p>
+                    <button onclick="viewGroup(${group.id})" style="margin-top: 1rem; padding: 0.4rem; font-size: 0.75rem;">View Map</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        async function fetchNotifications() {
+            const res = await fetch('/api/notifications', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const notes = await res.json();
+            const list = document.getElementById('notificationList');
+            list.innerHTML = notes.length ? '' : '<p style="color: grey;">No notifications</p>';
+            notes.forEach(n => {
+                const div = document.createElement('div');
+                div.style.padding = '0.5rem 0';
+                div.style.borderBottom = '1px solid var(--border)';
+                div.innerHTML = `<span style="color: ${n.type === 'warning' ? '#f43f5e' : '#6366f1'}">•</span> ${n.message} <br> <small style="color: grey;">${new Date(n.created_at).toLocaleTimeString()}</small>`;
+                list.appendChild(div);
+            });
+        }
+
+        // Admin Functions
+        async function fetchAdminUsers() {
+            const res = await fetch('/api/admin/users', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            renderAdminTable(data, 'users');
+        }
+
+        async function fetchAdminGroups() {
+            const res = await fetch('/api/admin/groups', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            renderAdminTable(data, 'groups');
+        }
+
+        function renderAdminTable(data, type) {
+            let html = `<table style="width: 100%; text-align: left; font-size: 0.8rem;"><tr><th>ID</th><th>Name</th><th>Action</th></tr>`;
+            data.forEach(item => {
+                html += `<tr><td>${item.id}</td><td>${item.username || item.name}</td><td><button onclick="deleteItem(${item.id}, '${type}')" style="padding: 0.2rem; background: #991b1b; width: auto;">Delete</button></td></tr>`;
+            });
+            html += `</table>`;
+            document.getElementById('adminData').innerHTML = html;
+        }
+
+        async function deleteItem(id, type) {
+            if (!confirm(`Delete this ${type}?`)) return;
+            const res = await fetch(`/api/admin/${type}/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                type === 'users' ? fetchAdminUsers() : fetchAdminGroups();
+            }
+        }
+
+        document.getElementById('createGroupBtn').addEventListener('click', async () => {
+            const name = document.getElementById('groupName').value;
+            await fetch('/api/groups/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ name })
+            });
+            fetchGroups();
+        });
+
+        document.getElementById('joinGroupBtn').addEventListener('click', async () => {
+            const groupCode = document.getElementById('groupCode').value;
+            await fetch('/api/groups/join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ groupCode })
+            });
+            fetchGroups();
+        });
+
+        function viewGroup(id) {
+            localStorage.setItem('activeGroupId', id);
+            window.location.href = 'map.html';
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+
+</html>

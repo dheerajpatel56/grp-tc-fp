@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Map (OSM) - Group Tracker</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <style>
+        #map {
+            height: 70vh;
+            width: 100%;
+            border-radius: 1rem;
+            margin-top: 1rem;
+            border: 1px solid var(--border);
+            z-index: 1;
+        }
+
+        .member-list {
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+    </style>
+</head>
+
+<body style="display: block; padding-top: 80px;">
+    <nav>
+        <div class="brand">LOCATOR</div>
+        <div style="display: flex; gap: 1rem;">
+            <button onclick="location.href='index.html'"
+                style="margin: 0; padding: 0.5rem 1rem; width: auto; background: rgba(255,255,255,0.1);">Back to
+                Dashboard</button>
+        </div>
+    </nav>
+
+    <main style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+        <h2 id="groupName">Group Map (OSM)</h2>
+        <div id="map"></div>
+
+        <div class="member-list" id="memberList">
+            <!-- Members will appear here -->
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        const token = localStorage.getItem('token');
+        const groupId = localStorage.getItem('activeGroupId');
+        let map;
+        let markers = {};
+
+        if (!token || !groupId) {
+            window.location.href = 'login.html';
+        }
+
+        function initMap() {
+            map = L.map('map').setView([0, 0], 2);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap beneficiaries'
+            }).addTo(map);
+
+            startTracking();
+            startPolling();
+        }
+
+        async function startTracking() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    await fetch('/api/locations/update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ latitude, longitude })
+                    });
+                }, (err) => console.error(err), { enableHighAccuracy: true });
+            }
+        }
+
+        async function startPolling() {
+            // Initial fetch to center map
+            fetchLocations();
+            setInterval(fetchLocations, 5000);
+        }
+
+        async function fetchLocations() {
+            const res = await fetch(`/api/locations/group/${groupId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const locations = await res.json();
+            updateMarkers(locations);
+            updateMemberList(locations);
+        }
+
+        function updateMarkers(locations) {
+            const markerGroup = [];
+            locations.forEach(loc => {
+                const pos = [parseFloat(loc.latitude), parseFloat(loc.longitude)];
+                if (markers[loc.id]) {
+                    markers[loc.id].setLatLng(pos);
+                } else {
+                    markers[loc.id] = L.marker(pos).addTo(map)
+                        .bindPopup(`<b>${loc.username}</b>`)
+                        .bindTooltip(loc.username, { permanent: true, direction: 'top' });
+                }
+                markerGroup.push(pos);
+            });
+
+            // Adjust map view to show all markers if it's the first time
+            if (locations.length > 0 && Object.keys(markers).length === locations.length) {
+                const bounds = L.latLngBounds(markerGroup);
+                map.fitBounds(bounds);
+            }
+        }
+
+        function updateMemberList(locations) {
+            const list = document.getElementById('memberList');
+            list.innerHTML = '';
+            locations.forEach(loc => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.style.padding = '1rem';
+                div.innerHTML = `
+                    <p><strong>${loc.username}</strong></p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Last seen: ${new Date(loc.updated_at).toLocaleTimeString()}</p>
+                    <button onclick="viewHistory(${loc.id})" style="margin-top: 1rem; width: auto; font-size: 0.7rem; padding: 0.4rem;">View History</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function viewHistory(userId) {
+            localStorage.setItem('historyUserId', userId);
+            window.location.href = 'history.html';
+        }
+
+        initMap();
+    </script>
+</body>
+
+</html>
