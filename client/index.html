@@ -69,15 +69,46 @@
         </div>
     </main>
 
-    <script>
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user'));
+    <!-- Clerk SDK -->
+    <script async crossorigin="anonymous"
+        data-clerk-publishable-key="pk_test_aGVscGluZy1vc3ByZXktNDAuY2xlcmsuYWNjb3VudHMuZGV2JA"
+        src="https://helping-osprey-40.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+        type="text/javascript"></script>
 
-        if (!token) {
-            window.location.href = 'login.html';
-        } else {
-            document.getElementById('usernameDisplay').innerText = `Hi, ${user.username}`;
-            if (user.role === 'admin') document.getElementById('adminPanel').style.display = 'block';
+    <script>
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user'));
+
+        window.addEventListener('load', async function () {
+            await Clerk.load();
+
+            if (Clerk.user) {
+                // Refresh token from Clerk
+                token = await Clerk.session.getToken();
+                localStorage.setItem('token', token);
+                user = {
+                    id: 'clerk',
+                    username: Clerk.user.username || Clerk.user.firstName,
+                    email: Clerk.user.emailAddresses[0].emailAddress,
+                    role: user?.role || 'user' // Preserve local role if exists
+                };
+                localStorage.setItem('user', JSON.stringify(user));
+
+                document.getElementById('usernameDisplay').innerText = `Hi, ${user.username}`;
+                if (user.role === 'admin') document.getElementById('adminPanel').style.display = 'block';
+
+                initApp();
+            } else if (!token) {
+                window.location.href = 'login.html';
+            } else {
+                // Fallback for custom login users
+                document.getElementById('usernameDisplay').innerText = `Hi, ${user.username}`;
+                if (user.role === 'admin') document.getElementById('adminPanel').style.display = 'block';
+                initApp();
+            }
+        });
+
+        function initApp() {
             fetchGroups();
             fetchNotifications();
             setInterval(fetchNotifications, 10000);
@@ -178,7 +209,10 @@
             window.location.href = 'map.html';
         }
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            if (window.Clerk && Clerk.user) {
+                await Clerk.signOut();
+            }
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = 'login.html';

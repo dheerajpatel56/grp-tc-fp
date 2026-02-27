@@ -9,6 +9,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const clerkAuth = require('./middleware/clerkAuth');
+app.use(clerkAuth);
+
 // 1. Health Check Endpoint (Must be first to avoid static match)
 app.get('/api/health', async (req, res) => {
     console.log('Health check requested');
