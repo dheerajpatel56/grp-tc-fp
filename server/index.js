@@ -12,6 +12,18 @@ app.use(express.json());
 const clerkAuth = require('./middleware/clerkAuth');
 app.use(clerkAuth);
 
+// Automated Database Migration
+const db = require('./config/db');
+(async () => {
+    try {
+        console.log('Running automated migration...');
+        await db.query('ALTER TABLE users MODIFY password VARCHAR(255) NULL;');
+        console.log('Migration successful or already applied.');
+    } catch (err) {
+        console.error('Migration failed (not critical if already applied):', err.message);
+    }
+})();
+
 // 1. Health Check Endpoint (Must be first to avoid static match)
 app.get('/api/health', async (req, res) => {
     console.log('Health check requested');

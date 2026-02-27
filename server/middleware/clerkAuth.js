@@ -1,4 +1,5 @@
 const { createClerkClient } = require('@clerk/clerk-sdk-node');
+const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
 const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
@@ -14,15 +15,31 @@ const clerkAuth = async (req, res, next) => {
 
         const token = authHeader.split(' ')[1];
 
-        // Verify the token with Clerk
-        // Note: For Clerk, usually the frontend sends the Session Token
+        // 1. Try local JWT first
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            if (decoded) {
+                // Fetch full user from DB to match Clerk's behavior
+                const [localUsers] = await db.query('SELECT id, username, email, role FROM users WHERE id = ?', [decoded.id]);
+                if (localUsers.length > 0) {
+                    req.user = localUsers[0];
+                    console.log('Local JWT Auth Success. User:', JSON.stringify(req.user));
+                    return next();
+                }
+            }
+        } catch (jwtErr) {
+            // Not a valid local JWT, continue to Clerk
+            console.log('Not a valid local JWT, checking Clerk...');
+        }
+
+        // 2. Verify the token with Clerk
         const requestState = await clerkClient.authenticateRequest(req, {
-            publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+            publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
             secretKey: process.env.CLERK_SECRET_KEY,
         });
 
         if (!requestState.isSignedIn) {
-            return res.status(401).json({ message: 'Unauthorized: Invalid Clerk session' });
+            return res.status(401).json({ message: 'Unauthorized: Invalid session' });
         }
 
         const clerkUserId = requestState.toAuth().userId;

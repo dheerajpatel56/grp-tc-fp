@@ -86,12 +86,21 @@
                 // Refresh token from Clerk
                 token = await Clerk.session.getToken();
                 localStorage.setItem('token', token);
-                user = {
-                    id: 'clerk',
-                    username: Clerk.user.username || Clerk.user.firstName,
-                    email: Clerk.user.emailAddresses[0].emailAddress,
-                    role: user?.role || 'user' // Preserve local role if exists
-                };
+
+                // Fetch full profile from server to get correct role/id
+                const profileRes = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (profileRes.ok) {
+                    user = await profileRes.json();
+                } else {
+                    user = {
+                        id: 'clerk',
+                        username: Clerk.user.username || Clerk.user.firstName,
+                        email: Clerk.user.emailAddresses[0].emailAddress,
+                        role: 'user'
+                    };
+                }
                 localStorage.setItem('user', JSON.stringify(user));
 
                 document.getElementById('usernameDisplay').innerText = `Hi, ${user.username}`;

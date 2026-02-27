@@ -1,0 +1,50 @@
+﻿Error: connect 
+ETIMEDOUT
+    at Object.createCon
+nectionPromise [as 
+createConnection] (C:\U
+sers\Dheeraj\.gemini\an
+tigravity\scratch\group
+-location-tracker\node_
+modules\mysql2\promise.
+js:19:31)
+    at migrate (C:\User
+s\Dheeraj\.gemini\antig
+ravity\scratch\group-lo
+cation-tracker\migrate.
+js:5:36)
+    at 
+Object.<anonymous> (C:\
+Users\Dheeraj\.gemini\a
+ntigravity\scratch\grou
+p-location-tracker\migr
+ate.js:25:1)
+    at Module._compile 
+(node:internal/modules/
+cjs/loader:1761:14)
+    at Object..js (node
+:internal/modules/cjs/l
+oader:1893:10)
+    at Module.load (nod
+e:internal/modules/cjs/
+loader:1481:32)
+    at Module._load (no
+de:internal/modules/cjs
+/loader:1300:12)
+    at TracingChannel.t
+raceSync (node:diagnost
+ics_channel:328:14)
+    at wrapModuleLoad (
+node:internal/modules/c
+js/loader:245:24)
+    at Module.executeUs
+erEntryPoint [as 
+runMain] (node:internal
+/modules/run_main:154:5
+) {
+  code: 'ETIMEDOUT',
+  errno: undefined,
+  sqlState: undefined
+}
+
+Node.js v24.11.1

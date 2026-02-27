@@ -33,3 +33,13 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+exports.getProfile = async (req, res) => {
+    try {
+        // req.user is already attached by clerkAuth middleware
+        if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+        res.json(req.user);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
