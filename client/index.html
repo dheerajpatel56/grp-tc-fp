@@ -14,12 +14,12 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg fixed-top">
+    <nav class="navbar navbar-expand-lg fixed-top shadow-sm">
         <div class="container-fluid">
             <a class="navbar-brand fs-4" href="#">LOCATOR</a>
             <div class="ms-auto d-flex align-items-center">
-                <span id="usernameDisplay" class="text-white me-3 opacity-75"></span>
-                <button id="logoutBtn" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <span id="usernameDisplay" class="text-dark me-3 fw-medium"></span>
+                <button id="logoutBtn" class="btn btn-outline-dark btn-sm rounded-pill px-3">
                     <i class="bi bi-box-arrow-right me-1"></i> Logout
                 </button>
             </div>
@@ -30,7 +30,7 @@
         <div class="row g-4">
             <!-- Sidebar / Control Panel -->
             <div class="col-lg-4">
-                <div class="glass-card h-100 fade-in">
+                <div class="glass-card h-100 border-0 shadow-sm">
                     <h5 class="mb-4 fw-bold">Manage Groups</h5>
 
                     <div class="mb-5">
@@ -44,12 +44,12 @@
                     <div class="mb-4">
                         <label class="form-label small text-muted text-uppercase fw-bold">Join Existing</label>
                         <div class="input-group">
-                            <input type="text" id="groupCode" class="form-control" placeholder="6-digit Code">
+                            <input type="text" id="groupCode" class="form-control" placeholder="Enter Invite Code">
                             <button id="joinGroupBtn" class="btn btn-outline-indigo">Join</button>
                         </div>
                     </div>
 
-                    <hr class="opacity-10 my-4">
+                    <hr class="my-4">
 
                     <h6 class="mb-3 fw-bold">Recent Alerts</h6>
                     <div id="notificationList" class="small overflow-auto" style="max-height: 250px;">
@@ -60,10 +60,10 @@
 
             <!-- Main Content Area -->
             <div class="col-lg-8">
-                <div class="glass-card mb-4 fade-in" style="animation-delay: 0.1s;">
+                <div class="glass-card mb-4 border-0 shadow-sm">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="mb-0 fw-bold">My Active Groups</h5>
-                        <span class="badge badge-indigo rounded-pill" id="groupCount">0 Groups</span>
+                        <h5 class="mb-0 fw-bold text-indigo">Active Group Sessions</h5>
+                        <span class="badge badge-indigo rounded-pill px-3" id="groupCount">0 Items</span>
                     </div>
                     <div id="groupsList" class="row g-3">
                         <!-- Groups here -->
@@ -71,17 +71,16 @@
                 </div>
 
                 <!-- Admin Section (Only visible to admin) -->
-                <div id="adminPanel" class="glass-card fade-in"
-                    style="display: none; border-color: rgba(239, 68, 68, 0.2); animation-delay: 0.2s;">
+                <div id="adminPanel" class="glass-card" style="display: none; border: 1px solid #fee2e2;">
                     <div class="d-flex align-items-center mb-3">
                         <i class="bi bi-shield-lock text-danger me-2 fs-5"></i>
-                        <h5 class="mb-0 fw-bold text-danger">Console</h5>
+                        <h5 class="mb-0 fw-bold text-danger">Moderator Console</h5>
                     </div>
                     <div class="d-flex gap-2 mb-4">
-                        <button onclick="fetchAdminUsers()" class="btn btn-dark btn-sm rounded-pill px-4">Manage
-                            Users</button>
-                        <button onclick="fetchAdminGroups()" class="btn btn-dark btn-sm rounded-pill px-4">Manage
-                            Groups</button>
+                        <button onclick="fetchAdminUsers()" class="btn btn-outline-dark btn-sm rounded-pill px-4">User
+                            Master</button>
+                        <button onclick="fetchAdminGroups()" class="btn btn-outline-dark btn-sm rounded-pill px-4">Group
+                            Master</button>
                     </div>
                     <div id="adminData" class="table-responsive"></div>
                 </div>
@@ -157,17 +156,17 @@
                 const div = document.createElement('div');
                 div.className = 'col-md-6';
                 div.innerHTML = `
-                    <div class="glass-card p-3 h-100 border-opacity-10">
-                        <div class="d-flex justify-content-between mb-3">
-                            <h6 class="fw-bold mb-0">${group.name}</h6>
-                            <span class="small text-muted font-monospace">${group.group_code}</span>
+                    <div class="glass-card p-3 h-100 shadow-sm">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="fw-bold mb-0 text-dark">${group.name}</h6>
+                            <span class="badge-code small" title="Share this code to invite members">${group.group_code}</span>
                         </div>
                         <div class="d-flex gap-2">
-                            <button onclick="viewGroup(${group.id})" class="btn btn-primary btn-sm flex-grow-1 py-2">
-                                <i class="bi bi-geo-alt me-1"></i> Track
+                            <button onclick="viewGroup(${group.id})" class="btn btn-primary btn-sm flex-grow-1">
+                                <i class="bi bi-map me-1"></i> Open Tracker
                             </button>
                             ${isCreator || user.role === 'admin' ? `
-                                <button onclick="deleteGroup(${group.id})" class="btn btn-outline-danger btn-sm p-2" title="Delete Group">
+                                <button onclick="deleteGroup(${group.id})" class="btn btn-outline-danger btn-sm px-3" title="Delete Group">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             ` : ''}

@@ -27,37 +27,37 @@
 </head>
 
 <body>
-    <div class="glass-card login-card fade-in">
+    <div class="glass-card login-card shadow-lg">
         <div class="text-center mb-4">
-            <h2 class="fw-bold mb-1">Welcome Back</h2>
-            <p class="text-muted small">Enter your credentials to continue</p>
+            <h2 class="fw-bold mb-1">Locator Sign In</h2>
+            <p class="text-muted small">Access your shared tracking groups</p>
         </div>
 
         <!-- Clerk Sign-In -->
         <div id="clerk-signin" class="mb-4"></div>
 
-        <div class="d-flex align-items-center gap-3 mb-4 opacity-50">
-            <hr class="flex-grow-1">
-            <span class="small fw-bold">OR</span>
-            <hr class="flex-grow-1">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <hr class="flex-grow-1 opacity-25">
+            <span class="small fw-bold text-muted">SECURE PORTAL</span>
+            <hr class="flex-grow-1 opacity-25">
         </div>
 
         <form id="loginForm">
             <div class="mb-3">
                 <label class="form-label small fw-bold text-muted">Email Address</label>
-                <input type="email" id="email" class="form-control" required placeholder="name@company.com">
+                <input type="email" id="email" class="form-control" required placeholder="name@email.com">
             </div>
             <div class="mb-4">
                 <label class="form-label small fw-bold text-muted">Password</label>
                 <input type="password" id="password" class="form-control" required placeholder="••••••••">
             </div>
             <button type="submit" class="btn btn-primary w-100 py-2">
-                Sign In
+                Continue to Dashboard
             </button>
         </form>
 
         <p class="text-center mt-4 mb-0 small text-muted">
-            Don't have an account? <a href="register.html" class="text-primary text-decoration-none fw-bold">Sign up</a>
+            New here? <a href="register.html" class="text-primary text-decoration-none fw-bold">Create Account</a>
         </p>
     </div>
 
@@ -87,10 +87,10 @@
             Clerk.mountSignIn(document.getElementById('clerk-signin'), {
                 appearance: {
                     variables: {
-                        colorPrimary: '#6366f1',
-                        colorBackground: 'transparent',
-                        colorText: '#f1f5f9',
-                        colorTextSecondary: '#94a3b8'
+                        colorPrimary: '#4f46e5',
+                        colorBackground: '#ffffff',
+                        colorText: '#0f172a',
+                        colorTextSecondary: '#64748b'
                     }
                 }
             });
