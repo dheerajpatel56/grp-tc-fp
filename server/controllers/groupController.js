@@ -66,15 +66,44 @@ exports.getGroupMembers = async (req, res) => {
 exports.deleteGroup = async (req, res) => {
     const { groupId } = req.params;
     try {
-        const [groups] = await db.query('SELECT * FROM \`groups\` WHERE id = ?', [groupId]);
+        const [groups] = await db.query('SELECT * FROM `groups` WHERE id = ?', [groupId]);
         if (groups.length === 0) return res.status(404).json({ message: 'Group not found' });
 
         if (groups[0].creator_id !== req.user.id && req.user.role !== 'admin') {
             return res.status(403).json({ message: 'Only creator can delete this group' });
         }
 
-        await db.query('DELETE FROM \`groups\` WHERE id = ?', [groupId]);
+        // Cleanup members first (if not cascading)
+        await db.query('DELETE FROM group_members WHERE group_id = ?', [groupId]);
+        await db.query('DELETE FROM `groups` WHERE id = ?', [groupId]);
+
         res.json({ message: 'Group deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.removeMember = async (req, res) => {
+    const { groupId, memberId } = req.params;
+    try {
+        const [groups] = await db.query('SELECT * FROM `groups` WHERE id = ?', [groupId]);
+        if (groups.length === 0) return res.status(404).json({ message: 'Group not found' });
+
+        const group = groups[0];
+        if (group.creator_id !== req.user.id && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Only group creators can remove members' });
+        }
+
+        if (parseInt(memberId) === group.creator_id) {
+            return res.status(400).json({ message: 'Creators cannot remove themselves. Delete the group instead.' });
+        }
+
+        await db.query('DELETE FROM group_members WHERE group_id = ? AND user_id = ?', [groupId, memberId]);
+
+        // Notify the user
+        await notificationController.createNotification(memberId, groupId, `You have been removed from the group: ${group.name}`, 'warning');
+
+        res.json({ message: 'Member removed successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

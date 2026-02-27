@@ -1,0 +1,82 @@
+Group Location Tracker - Application Overview
+
+A real-time group-based location tracking system with live monitoring, route history, and administrative controls.
+
+Core Features:
+
+1. Dual-Path Authentication
+- Google Auth (Clerk): Seamless sign-in using Google accounts via Clerk SDK.
+- Custom Auth (JWT): Traditional email/password registration and login with JWT session management.
+- Profile Management: Dedicated /me endpoint to sync roles and user details from the database across both auth systems.
+
+2. Live Location Tracking
+- Real-Time Map: Live view of all group members on an OpenStreetMap (OSM) interface via Leaflet.js.
+- Background Tracking: Automatic location updates using the browser's Geolocation API (polls every 5 seconds).
+- Auto-Clustering: Map automatically fits bounds to show all active group members.
+- Interactive Markers: Clickable markers showing usernames and "last seen" timestamps.
+
+3. Route History Playback
+- Historical Analysis: View specific routes taken by any group member on a selected date.
+- Visual Paths: Routes are rendered as polyline paths on the map.
+- Start/End Indicators: Clear markers for the beginning and end of a recorded route.
+
+4. Group Management
+- Group Creation: Users can create private groups and receive a unique join code.
+- Secure Joining: Members join groups using invite codes.
+- Member Directory: View a live list of all members within a group and their current status.
+- Self-Management: Ability for creators to delete their own groups.
+
+5. Notification System
+- Real-Time Alerts: System notifications for group activity and geofence events.
+- Geofencing: Automatic trigger of warnings when users move outside of designated areas (requires backend configuration).
+- Notification Center: Dedicated list to view and manage read/unread notifications.
+
+-----------------------
+
+Administrative Functions:
+
+The Admin Panel provides centralized control for platform moderators:
+- User Management: View a complete directory of registered users and delete/block accounts.
+- Global Group Control: Monitor all active groups and delete unauthorized or inactive groups.
+- Schema Automation: Integrated startup migration system that automatically keeps the database schema up to date.
+
+-----------------------
+
+Technical Stack:
+
+- Frontend: Vanilla JS, HTML5, CSS3 (Custom Dark Theme)
+- Maps: Leaflet.js, OpenStreetMap
+- Backend: Node.js, Express.js
+- Auth: Clerk (Google) + JWT (Local)
+- Database: TiDB Cloud (MySQL 8.0 Compatible)
+- Infrastructure: Render (Hosting)
+
+-----------------------
+
+API Documentation Summary:
+
+Authentication (/api/auth)
+- POST /register: Register a new email/password user.
+- POST /login: Standard JWT login.
+- GET /me: Fetch authenticated user profile and roles.
+
+Groups (/api/groups)
+- POST /create: Create a new tracking group.
+- POST /join: Join a group via invite code.
+- GET /my-groups: List all groups the user belongs to.
+- GET /:groupId/members: List all members in a specific group.
+
+Locations (/api/locations)
+- POST /update: Submit current latitude/longitude.
+- GET /group/:groupId: Get current locations of all members in a group.
+- GET /history/:userId: Fetch route path for a specific date.
+
+Notifications (/api/notifications)
+- GET /: List all user notifications.
+- PUT /read: Mark all notifications as read.
+
+Admin (/api/admin)
+- GET /users: List all system users.
+- GET /groups: List all system groups.
+- DELETE /users/:userId: Remove/Block a user.
+- DELETE /groups/:groupId: Global group deletion.
