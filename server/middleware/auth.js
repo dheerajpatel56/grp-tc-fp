@@ -1,6 +1,11 @@
 const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
+    // If Clerk middleware already authenticated the user, proceed
+    if (req.user) {
+        return next();
+    }
+
     const token = req.header('Authorization');
     if (!token) return res.status(401).json({ message: 'Access Denied' });
 

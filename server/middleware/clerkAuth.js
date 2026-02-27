@@ -47,6 +47,7 @@ const clerkAuth = async (req, res, next) => {
         }
 
         req.user = localUser;
+        console.log('Clerk Auth Success. Local User:', JSON.stringify(req.user));
         next();
     } catch (err) {
         console.error('Clerk Auth Middleware Error:', err);
