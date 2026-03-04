@@ -64,11 +64,17 @@ app.use(express.static(path.join(__dirname, '../client')));
 
 // 4. Catch-all Fallback (Serve login page for any other route)
 app.use((req, res) => {
+    if (req.path.startsWith('/api') || req.path.includes('.')) {
+        return res.status(404).json({ message: `Path not found: ${req.path}` });
+    }
     console.log(`Fallback hit for: ${req.method} ${req.path}`);
     res.sendFile(path.join(__dirname, '../client/login.html'));
 });
 
+
 const PORT = process.env.PORT || 5000;
+
+
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

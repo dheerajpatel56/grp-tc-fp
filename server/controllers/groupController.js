@@ -3,19 +3,27 @@ const notificationController = require('./notificationController');
 
 exports.createGroup = async (req, res) => {
     const { name } = req.body;
+    console.log(`Creating group request: name=${name}, user=${JSON.stringify(req.user)}`);
     const groupCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     try {
+        if (!req.user || !req.user.id) {
+            console.error('Create Group Error: No user ID in request');
+            return res.status(401).json({ message: 'Unauthorized: No user found' });
+        }
         const [result] = await db.query('INSERT INTO `groups` (name, group_code, creator_id) VALUES (?, ?, ?)', [name, groupCode, req.user.id]);
         const groupId = result.insertId;
 
         // Auto join creator
         await db.query('INSERT INTO group_members (group_id, user_id) VALUES (?, ?)', [groupId, req.user.id]);
 
+        console.log(`Group created: ID=${groupId}, Name=${name}, Code=${groupCode}`);
         res.status(201).json({ message: 'Group created successfully', group: { id: groupId, name, groupCode } });
     } catch (err) {
+        console.error('Group Creation Exception:', err);
         res.status(500).json({ message: err.message });
     }
 };
+
 
 exports.joinGroup = async (req, res) => {
     const { groupCode } = req.body;

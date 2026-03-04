@@ -18,7 +18,11 @@
     </style>
 </head>
 
-<body class="pt-5">
+<body class="pt-5 antialiased">
+    <video autoplay muted loop playsinline class="video-bg">
+        <source src="assets/bg-video.mp4" type="video/mp4">
+    </video>
+
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand fs-4" href="index.html">LOCATOR</a>
@@ -63,8 +67,10 @@
         let markers = [];
 
         if (!token || !userId) {
-            window.location.href = 'login.html';
+            console.log('Missing session data, staying on page.');
+            // window.location.href = 'login.html';
         }
+
 
         function initMap() {
             map = L.map('map').setView([0, 0], 2);

@@ -13,7 +13,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 
-<body>
+<body class="antialiased">
+    <video autoplay muted loop playsinline class="video-bg">
+        <source src="assets/bg-video.mp4" type="video/mp4">
+    </video>
+
     <nav class="navbar navbar-expand-lg fixed-top shadow-sm">
         <div class="container-fluid">
             <a class="navbar-brand fs-4" href="#">LOCATOR</a>
@@ -124,8 +128,10 @@
                 updateUI();
                 initApp();
             } else if (!token) {
-                window.location.href = 'login.html';
-            } else {
+                console.log('No token found, staying on page but features restricted.');
+                // window.location.href = 'login.html';
+            }
+            else {
                 updateUI();
                 initApp();
             }
@@ -147,8 +153,19 @@
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const groups = await res.json();
+            if (!Array.isArray(groups)) {
+                console.error('Expected array of groups, got:', groups);
+                if (res.status === 401) {
+                    console.warn('Session expired or unauthorized');
+                    document.getElementById('groupCount').innerText = 'SESSION EXPIRED';
+                    return;
+                }
+                return;
+
+            }
             const list = document.getElementById('groupsList');
             document.getElementById('groupCount').innerText = `${groups.length} Groups`;
+
             list.innerHTML = '';
 
             groups.forEach(group => {
@@ -259,14 +276,21 @@
         document.getElementById('createGroupBtn').addEventListener('click', async () => {
             const name = document.getElementById('groupName').value;
             if (!name) return;
-            await fetch('/api/groups/create', {
+            const res = await fetch('/api/groups/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ name })
             });
-            document.getElementById('groupName').value = '';
-            fetchGroups();
+            const data = await res.json();
+            if (res.ok) {
+                alert('Group created successfully!');
+                document.getElementById('groupName').value = '';
+                fetchGroups();
+            } else {
+                alert('Creation failed: ' + data.message);
+            }
         });
+
 
         document.getElementById('joinGroupBtn').addEventListener('click', async () => {
             const groupCode = document.getElementById('groupCode').value;
