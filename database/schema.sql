@@ -58,3 +58,17 @@ CREATE TABLE IF NOT EXISTS notifications (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE SET NULL
 );
+
+-- Create Invites Table
+CREATE TABLE IF NOT EXISTS invites (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    group_id INT,
+    inviter_id INT,
+    invitee_id INT,
+    status ENUM('pending', 'accepted', 'declined') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_invite (group_id, invitee_id),
+    FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE,
+    FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (invitee_id) REFERENCES users(id) ON DELETE CASCADE
+);
